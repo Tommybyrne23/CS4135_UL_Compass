@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# CS4135_UL_Compass
-=======
 
   # Website for UL Compass Guide
 
@@ -12,4 +9,3 @@
 
   Run `npm run dev` to start the development server.
   
->>>>>>> 6d9fdfb9 (Initial commit)

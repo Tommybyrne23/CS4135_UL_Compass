@@ -28,7 +28,7 @@ export const buildings: Building[] = [
     name: "CSIS",
     fullName: "Computer Science and Information Systems Building",
     type: "Academic",
-    coordinates: { lat: 52.6738, lng: -8.5739 },
+    coordinates: { lat: 52.673891718601624, lng: -8.575582023281457 },
     description: "Home to the Department of Computer Science and Information Systems",
   },
   {
@@ -36,7 +36,7 @@ export const buildings: Building[] = [
     name: "Kemmy Business School",
     fullName: "Kemmy Business School",
     type: "Academic",
-    coordinates: { lat: 52.6745, lng: -8.5745 },
+    coordinates: { lat: 52.67259549077003, lng: -8.576767559681779 },
     description: "UL's leading business education facility",
   },
   {
@@ -44,7 +44,7 @@ export const buildings: Building[] = [
     name: "Engineering Research",
     fullName: "Engineering Research Building",
     type: "Academic",
-    coordinates: { lat: 52.6735, lng: -8.5735 },
+    coordinates: { lat: 52.67504464508122, lng: -8.572743491121834 },
     description: "State-of-the-art engineering research facilities",
   },
   {
@@ -52,7 +52,7 @@ export const buildings: Building[] = [
     name: "Foundation",
     fullName: "Foundation Building",
     type: "Academic",
-    coordinates: { lat: 52.6742, lng: -8.5742 },
+    coordinates: { lat: 52.674260753404866, lng: -8.573226288727376 },
     description: "Central academic building with lecture halls",
   },
   {
@@ -60,7 +60,7 @@ export const buildings: Building[] = [
     name: "Library",
     fullName: "Glucksman Library",
     type: "Library",
-    coordinates: { lat: 52.6740, lng: -8.5740 },
+    coordinates: { lat: 52.67330842247622, lng: -8.573307724422852 },
     description: "Main campus library and study space",
   },
   {
@@ -68,7 +68,7 @@ export const buildings: Building[] = [
     name: "Stables",
     fullName: "Stables Complex",
     type: "Student Services",
-    coordinates: { lat: 52.6748, lng: -8.5748 },
+    coordinates: { lat: 52.673062838212054, lng: -8.570872278676017 },
     description: "Student center with cafes and services",
   },
   {
@@ -76,7 +76,7 @@ export const buildings: Building[] = [
     name: "Sports Arena",
     fullName: "UL Sports Arena",
     type: "Sports",
-    coordinates: { lat: 52.6730, lng: -8.5730 },
+    coordinates: { lat: 52.67338974147296, lng: -8.565317423900703 },
     description: "Indoor sports and fitness facilities",
   },
   {
@@ -84,7 +84,7 @@ export const buildings: Building[] = [
     name: "Irish World Academy",
     fullName: "Irish World Academy of Music and Dance",
     type: "Academic",
-    coordinates: { lat: 52.6750, lng: -8.5750 },
+    coordinates: { lat: 52.67811736738278, lng: -8.569456072316742 },
     description: "Music and performing arts building",
   },
 ];
