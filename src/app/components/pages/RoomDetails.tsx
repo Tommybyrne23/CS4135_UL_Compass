@@ -49,11 +49,11 @@ export function RoomDetails() {
       return;
     }
 
-    if (isFavorite(room.id)) {
-      removeFavorite(room.id);
+    if (isFavorite(room.id, "room")) {
+      removeFavorite(room.id, "room");
       toast.success("Removed from favorites");
     } else {
-      addFavorite(room.id);
+      addFavorite(room.id, "room");
       toast.success("Added to favorites");
     }
   };
@@ -88,10 +88,10 @@ export function RoomDetails() {
               variant="outline"
               size="lg"
               onClick={handleFavoriteToggle}
-              className={isFavorite(room.id) ? "text-red-500" : ""}
+              className={isFavorite(room.id, "room") ? "text-red-500" : ""}
             >
               <Heart
-                className={`size-5 ${isFavorite(room.id) ? "fill-current" : ""}`}
+                className={`size-5 ${isFavorite(room.id, "room") ? "fill-current" : ""}`}
               />
             </Button>
           </div>

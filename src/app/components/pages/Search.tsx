@@ -32,17 +32,17 @@ export function Search() {
     setSearchPerformed(true);
   };
 
-  const handleFavoriteToggle = (roomId: string) => {
+  const handleFavoriteToggle = (itemId: string, itemType: "room" | "building" | "service") => {
     if (!isAuthenticated) {
       toast.error("Please login to save favorites");
       return;
     }
 
-    if (isFavorite(roomId)) {
-      removeFavorite(roomId);
+    if (isFavorite(itemId, itemType)) {
+      removeFavorite(itemId, itemType);
       toast.success("Removed from favorites");
     } else {
-      addFavorite(roomId);
+      addFavorite(itemId, itemType);
       toast.success("Added to favorites");
     }
   };
@@ -131,14 +131,14 @@ export function Search() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleFavoriteToggle(room.id)}
+                          onClick={() => handleFavoriteToggle(room.id, "room")}
                           className={
-                            isFavorite(room.id) ? "text-red-500" : "text-slate-400"
+                            isFavorite(room.id, "room") ? "text-red-500" : "text-slate-400"
                           }
                         >
                           <Heart
                             className={`size-5 ${
-                              isFavorite(room.id) ? "fill-current" : ""
+                              isFavorite(room.id, "room") ? "fill-current" : ""
                             }`}
                           />
                         </Button>
@@ -198,11 +198,29 @@ export function Search() {
                 {buildingResults.map((building) => (
                   <Card key={building.id} className="hover:shadow-md transition">
                     <CardHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle>{building.fullName}</CardTitle>
-                        <Badge variant="outline">{building.type}</Badge>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CardTitle>{building.fullName}</CardTitle>
+                            <Badge variant="outline">{building.type}</Badge>
+                          </div>
+                          <p className="text-slate-600">{building.description}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleFavoriteToggle(building.id, "building")}
+                          className={
+                            isFavorite(building.id, "building") ? "text-red-500" : "text-slate-400"
+                          }
+                        >
+                          <Heart
+                            className={`size-5 ${
+                              isFavorite(building.id, "building") ? "fill-current" : ""
+                            }`}
+                          />
+                        </Button>
                       </div>
-                      <p className="text-slate-600">{building.description}</p>
                     </CardHeader>
                     <CardContent>
                       <Button 
@@ -230,9 +248,27 @@ export function Search() {
                 {serviceResults.map((service) => (
                   <Card key={service.id} className="hover:shadow-md transition">
                     <CardHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle>{service.name}</CardTitle>
-                        <Badge>{service.type}</Badge>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CardTitle>{service.name}</CardTitle>
+                            <Badge>{service.type}</Badge>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleFavoriteToggle(service.id, "service")}
+                          className={
+                            isFavorite(service.id, "service") ? "text-red-500" : "text-slate-400"
+                          }
+                        >
+                          <Heart
+                            className={`size-5 ${
+                              isFavorite(service.id, "service") ? "fill-current" : ""
+                            }`}
+                          />
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
