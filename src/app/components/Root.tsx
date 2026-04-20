@@ -92,7 +92,7 @@ export function Root() {
             <div className="flex items-center gap-2">
               {isAuthenticated ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger>
                     <Button variant="ghost" className="text-white hover:bg-green-700">
                       <User className="size-4 mr-2" />
                       {user?.name}
