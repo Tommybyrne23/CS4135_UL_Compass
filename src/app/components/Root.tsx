@@ -224,10 +224,10 @@ export function Root() {
             </div>
           </div>
           <div className="border-t border-slate-700 mt-8 pt-6 text-center text-sm text-slate-400">
-            © 2026 UL Compass. Not officially affiliated with University of Limerick.
+            2026 UL Compass. 
             <br />
             <span className="mt-2 block">
-              Created by Evan Ryan, Oisin Allen, Kyle Mullane-Ndu, Thomas Byrne, and Michal Kornacki
+              Created by Evan Ryan, Oisin Allen, Kyle Mullane-Ndu, Thomas Byrne
             </span>
           </div>
         </div>
