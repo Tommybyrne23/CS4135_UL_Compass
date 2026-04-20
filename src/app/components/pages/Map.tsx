@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { buildings, rooms, type Building } from "../../data/campusData";
+import { buildings, rooms, services, type Building, type Service } from "../../data/campusData";
 import { MapPin, Info, AlertCircle } from "lucide-react";
 import {
   Select,
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { GoogleMap, LoadScript, Marker, InfoWindow } from "@react-google-maps/api";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 // UL Campus center coordinates
 const UL_CENTER = { lat: 52.6738, lng: -8.5739 };
@@ -36,17 +36,40 @@ const getMarkerUrl = (building: Building, selectedBuilding: string | null) => {
     return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
   }
 
-  if (building.type.toLowerCase() === "food" || building.type.toLowerCase() === "cafe") {
+  return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+};
+
+const getServiceMarkerUrl = (serviceType: string) => {
+  if (serviceType.toLowerCase() === "cafe") {
+    return "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png";
+  }
+  if (serviceType.toLowerCase() === "sports facility") {
+    return "http://maps.google.com/mapfiles/ms/icons/green-dot.png";
+  }
+    if (serviceType.toLowerCase() === "food") {
     return "http://maps.google.com/mapfiles/ms/icons/orange-dot.png";
   }
-
-  return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
+  return "http://maps.google.com/mapfiles/ms/icons/purple-dot.png";
 };
 
 export function Map() {
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
+  const [selectedService, setSelectedService] = useState<string | null>(null);
   const [showRooms, setShowRooms] = useState(false);
+  const location = useLocation();
+
+  // Handle navigation state when coming from search
+  useEffect(() => {
+    const state = location.state as { selectedBuildingId?: string; selectedServiceId?: string } | null;
+    if (state?.selectedBuildingId) {
+      setSelectedBuilding(state.selectedBuildingId);
+      setSelectedMarker(state.selectedBuildingId);
+      setShowRooms(true);
+    } else if (state?.selectedServiceId) {
+      setSelectedService(state.selectedServiceId);
+    }
+  }, [location.state]);
 
   // Replace this with your actual Google Maps API key
   const GOOGLE_MAPS_API_KEY = "AIzaSyCDlZU__f7fp7vA7skzT01M1_IIV-Wu61A";
@@ -58,6 +81,11 @@ export function Map() {
   const selectedBuildingData = useMemo(
     () => buildings.find((b) => b.id === selectedBuilding),
     [selectedBuilding]
+  );
+
+  const selectedServiceData = useMemo(
+    () => services.find((s) => s.id === selectedService),
+    [selectedService]
   );
 
   const handleMarkerClick = (buildingId: string) => {
@@ -77,45 +105,6 @@ export function Map() {
         </p>
       </div>
 
-      {/* API Key Warning */}
-      {GOOGLE_MAPS_API_KEY === "AIzaSyCDlZU__f7fp7vA7skzT01M1_IIV-Wu61A" && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <AlertCircle className="size-5 text-orange-600" />
-              <CardTitle className="text-lg text-orange-900">
-                Google Maps API Key Required
-              </CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="text-sm text-orange-800 space-y-2">
-            <p>
-              To display the interactive map, you need to add your Google Maps API key.
-            </p>
-            <ol className="list-decimal list-inside space-y-1 ml-2">
-              <li>
-                Visit{" "}
-                <a
-                  href="https://console.cloud.google.com/google/maps-apis"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline font-semibold"
-                >
-                  Google Cloud Console
-                </a>
-              </li>
-              <li>Create a project and enable the Maps JavaScript API</li>
-              <li>Generate an API key</li>
-              <li>
-                Replace <code className="bg-orange-200 px-1 rounded">YOUR_GOOGLE_MAPS_API_KEY_HERE</code> in{" "}
-                <code className="bg-orange-200 px-1 rounded">
-                  /src/app/components/pages/Map.tsx
-                </code>
-              </li>
-            </ol>
-          </CardContent>
-        </Card>
-      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Map Area */}
@@ -124,10 +113,16 @@ export function Map() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Interactive Map</CardTitle>
-                <Badge variant="outline" className="gap-1">
-                  <MapPin className="size-3" />
-                  {buildings.length} Buildings
-                </Badge>
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="gap-1">
+                    <MapPin className="size-3" />
+                    {buildings.length} Buildings
+                  </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <MapPin className="size-3" />
+                    {services.length} Services
+                  </Badge>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -151,6 +146,19 @@ export function Map() {
                     />
                   ))}
 
+                  {/* Service Markers */}
+                  {services.map((service) => (
+                    <Marker
+                      key={service.id}
+                      position={service.coordinates}
+                      title={service.name}
+                      onClick={() => setSelectedService(service.id)}
+                      icon={{
+                        url: getServiceMarkerUrl(service.type),
+                      }}
+                    />
+                  ))}
+
                   {/* Info Window for selected building */}
                   {selectedMarker && selectedBuildingData && (
                     <InfoWindow
@@ -170,6 +178,26 @@ export function Map() {
                       </div>
                     </InfoWindow>
                   )}
+
+                  {/* Info Window for selected service */}
+                  {selectedService && selectedServiceData && (
+                    <InfoWindow
+                      position={selectedServiceData.coordinates}
+                      onCloseClick={() => setSelectedService(null)}
+                    >
+                      <div className="p-2">
+                        <h3 className="font-semibold text-base mb-1">
+                          {selectedServiceData.name}
+                        </h3>
+                        <p className="text-sm text-slate-600 mb-2">
+                          {selectedServiceData.openingHours}
+                        </p>
+                        <Badge className="text-xs">
+                          {selectedServiceData.type}
+                        </Badge>
+                      </div>
+                    </InfoWindow>
+                  )}
                 </GoogleMap>
               </LoadScript>
 
@@ -179,9 +207,12 @@ export function Map() {
                   <div className="text-sm text-slate-700">
                     <p className="font-semibold mb-1">How to use:</p>
                     <ul className="space-y-1">
-                      <li>• Click on any marker to view building details</li>
-                      <li>• Orange markers are Food/Cafe locations</li>
-                      <li>• Red markers are other buildings</li>
+                      <li>• Click on any marker to view details</li>
+                      <li>• Red markers are Academic buildings</li>
+                      <li>• Orange markers are Restaurants</ li>
+                      <li>• Yellow markers are Cafes</li>
+                      <li>• Purple markers are Other Services</li>
+                      <li>• Green markers are Sports Facilities</li>
                       <li>• Blue marker shows your selected building</li>
                       <li>• Use the dropdown below to filter by building</li>
                     </ul>

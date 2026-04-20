@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Search as SearchIcon, MapPin, Building2, Clock, Users, Heart } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { searchRooms, searchBuildings, services } from "../../data/campusData";
 import { useFavorites } from "../../contexts/FavoritesContext";
 import { useAuth } from "../../contexts/AuthContext";
@@ -15,6 +15,7 @@ export function Search() {
   const [searchPerformed, setSearchPerformed] = useState(false);
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const roomResults = query ? searchRooms(query) : [];
   const buildingResults = query ? searchBuildings(query) : [];
@@ -44,6 +45,14 @@ export function Search() {
       addFavorite(roomId);
       toast.success("Added to favorites");
     }
+  };
+
+  const handleViewBuildingOnMap = (buildingId: string) => {
+    navigate("/map", { state: { selectedBuildingId: buildingId } });
+  };
+
+  const handleViewServiceOnMap = (serviceId: string) => {
+    navigate("/map", { state: { selectedServiceId: serviceId } });
   };
 
   const totalResults =
@@ -196,11 +205,13 @@ export function Search() {
                       <p className="text-slate-600">{building.description}</p>
                     </CardHeader>
                     <CardContent>
-                      <Link to="/map">
-                        <Button variant="outline" className="w-full">
-                          View on Map
-                        </Button>
-                      </Link>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => handleViewBuildingOnMap(building.id)}
+                      >
+                        View on Map
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -229,11 +240,13 @@ export function Search() {
                         <Clock className="size-4" />
                         {service.openingHours}
                       </div>
-                      <Link to="/map">
-                        <Button variant="outline" className="w-full">
-                          View on Map
-                        </Button>
-                      </Link>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => handleViewServiceOnMap(service.id)}
+                      >
+                        View on Map
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
