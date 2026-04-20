@@ -50,4 +50,4 @@ Run the code again and it should work.
 
 **NFR-03 (UI/UX):** The website must be fully responsive and easy to understand.
 
-( We had a teammate who is not participating so we are short on more requirements. such as route generation to guide the user to a room/building/service. )
+( We had a teammate who is not participating so we are short on more requirements. such as route generation to guide the user to a room/building/service. And also the deployment hence why you have to do all of this, sorry D:)
