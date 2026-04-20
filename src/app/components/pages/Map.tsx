@@ -253,6 +253,32 @@ export function Map() {
             </CardContent>
           </Card>
 
+          {/* Service Filter */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Select Service</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={selectedService || ""}
+                onValueChange={(value) => {
+                  setSelectedService(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a service" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
           {/* Building Info */}
           {selectedBuilding && selectedBuildingData && (
             <Card>
@@ -274,6 +300,28 @@ export function Map() {
                     <div className="text-sm text-slate-600">
                       <strong>Rooms in this building:</strong> {filteredRooms.length}
                     </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Service Info */}
+          {selectedService && selectedServiceData && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Service Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-semibold text-lg">
+                      {selectedServiceData.name}
+                    </h3>
+                    <Badge className="mt-2">{selectedServiceData.type}</Badge>
+                  </div>
+                  <div className="text-sm text-slate-600">
+                    <strong>Hours:</strong> {selectedServiceData.openingHours}
                   </div>
                 </div>
               </CardContent>
