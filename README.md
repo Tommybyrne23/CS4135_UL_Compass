@@ -1,3 +1,5 @@
+## Installation for project
+
 Make sure Visual Studio Code is closoed before continuing
 
 You want to first check to see if you have NodeJS (You may need to uninstall for this process.)
@@ -27,7 +29,7 @@ Type in the following code: **Set-ExecutionPolicy RemoteSigned -Scope CurrentUse
 Close VS Code and Open it again.
 Run the code again and it should work.
 
-SPECIFICATION REQUIREMENTS:
+## SPECIFICATION REQUIREMENTS:
 Functional Requirements: 
 
 FR-01 (Authentication): The system shall allow users to login / register using an email and password, then log out and log back in at any time to see favourites.
