@@ -181,28 +181,6 @@ export function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-[#00843D] text-white rounded-lg p-8">
-        <div className="grid md:grid-cols-4 gap-8 text-center">
-          <div>
-            <div className="text-4xl font-bold mb-2">368+</div>
-            <div className="text-green-200">Acres of Campus</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">100+</div>
-            <div className="text-green-200">Buildings Mapped</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">500+</div>
-            <div className="text-green-200">Rooms & Spaces</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">3000+</div>
-            <div className="text-green-200">International Students</div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section className="text-center space-y-6 py-8">
         <h2 className="text-3xl font-semibold text-[#00843D]">
