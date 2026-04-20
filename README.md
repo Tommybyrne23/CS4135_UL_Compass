@@ -8,7 +8,7 @@ Also ensure that you have chocolatey uninstalled (Open PowerShell as admin and r
 
 Once done you can follow this this path:
 
-You want to install NODE.JS (Run node-v24.14.1-x64 WINDOWS ONLY)
+You want to install NODE.JS (Run **node-v24.14.1-x64** WINDOWS ONLY)
 click on next until you see a tick box, ENSURE TO TICK "Automatically ..... Install Choclatey) when running this app.
 
 Now open VS Code.
