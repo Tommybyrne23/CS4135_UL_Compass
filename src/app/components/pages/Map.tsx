@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { buildings, rooms } from "../../data/campusData";
+import { buildings, rooms, type Building } from "../../data/campusData";
 import { MapPin, Info, AlertCircle } from "lucide-react";
 import {
   Select,
@@ -29,6 +29,18 @@ const mapOptions = {
   streetViewControl: false,
   mapTypeControl: true,
   fullscreenControl: true,
+};
+
+const getMarkerUrl = (building: Building, selectedBuilding: string | null) => {
+  if (selectedBuilding === building.id) {
+    return "http://maps.google.com/mapfiles/ms/icons/blue-dot.png";
+  }
+
+  if (building.type.toLowerCase() === "food" || building.type.toLowerCase() === "cafe") {
+    return "http://maps.google.com/mapfiles/ms/icons/orange-dot.png";
+  }
+
+  return "http://maps.google.com/mapfiles/ms/icons/red-dot.png";
 };
 
 export function Map() {
@@ -134,10 +146,7 @@ export function Map() {
                       title={building.fullName}
                       onClick={() => handleMarkerClick(building.id)}
                       icon={{
-                        url:
-                          selectedBuilding === building.id
-                            ? "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
-                            : "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+                        url: getMarkerUrl(building, selectedBuilding),
                       }}
                     />
                   ))}
@@ -171,7 +180,8 @@ export function Map() {
                     <p className="font-semibold mb-1">How to use:</p>
                     <ul className="space-y-1">
                       <li>• Click on any marker to view building details</li>
-                      <li>• Red markers are available buildings</li>
+                      <li>• Orange markers are Food/Cafe locations</li>
+                      <li>• Red markers are other buildings</li>
                       <li>• Blue marker shows your selected building</li>
                       <li>• Use the dropdown below to filter by building</li>
                     </ul>
