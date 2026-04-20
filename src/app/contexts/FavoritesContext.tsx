@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 
+export type FavoriteType = "room" | "building" | "service";
+
+export interface Favorite {
+  id: string;
+  type: FavoriteType;
+}
+
 interface FavoritesContextType {
-  favorites: string[];
-  addFavorite: (roomId: string) => void;
-  removeFavorite: (roomId: string) => void;
-  isFavorite: (roomId: string) => boolean;
+  favorites: Favorite[];
+  addFavorite: (id: string, type: FavoriteType) => void;
+  removeFavorite: (id: string, type: FavoriteType) => void;
+  isFavorite: (id: string, type: FavoriteType) => boolean;
+  getFavoritesByType: (type: FavoriteType) => Favorite[];
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(
@@ -13,7 +21,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 );
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -22,17 +30,37 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         `ul_compass_favorites_${user.id}`
       );
       if (storedFavorites) {
-        setFavorites(JSON.parse(storedFavorites));
+        try {
+          const parsed = JSON.parse(storedFavorites);
+          // Handle legacy format (string array) and convert to new format
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            if (typeof parsed[0] === "string") {
+              // Legacy format: convert all strings to room favorites
+              const converted = parsed.map((id: string) => ({
+                id,
+                type: "room" as FavoriteType,
+              }));
+              setFavorites(converted);
+            } else {
+              // New format
+              setFavorites(parsed);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to parse favorites", e);
+        }
       }
     } else {
       setFavorites([]);
     }
   }, [user]);
 
-  const addFavorite = (roomId: string) => {
+  const addFavorite = (id: string, type: FavoriteType) => {
     if (!user) return;
-    
-    const newFavorites = [...favorites, roomId];
+
+    if (isFavorite(id, type)) return; // Don't add duplicates
+
+    const newFavorites = [...favorites, { id, type }];
     setFavorites(newFavorites);
     localStorage.setItem(
       `ul_compass_favorites_${user.id}`,
@@ -40,10 +68,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const removeFavorite = (roomId: string) => {
+  const removeFavorite = (id: string, type: FavoriteType) => {
     if (!user) return;
-    
-    const newFavorites = favorites.filter((id) => id !== roomId);
+
+    const newFavorites = favorites.filter(
+      (fav) => !(fav.id === id && fav.type === type)
+    );
     setFavorites(newFavorites);
     localStorage.setItem(
       `ul_compass_favorites_${user.id}`,
@@ -51,13 +81,23 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const isFavorite = (roomId: string) => {
-    return favorites.includes(roomId);
+  const isFavorite = (id: string, type: FavoriteType) => {
+    return favorites.some((fav) => fav.id === id && fav.type === type);
+  };
+
+  const getFavoritesByType = (type: FavoriteType) => {
+    return favorites.filter((fav) => fav.type === type);
   };
 
   return (
     <FavoritesContext.Provider
-      value={{ favorites, addFavorite, removeFavorite, isFavorite }}
+      value={{
+        favorites,
+        addFavorite,
+        removeFavorite,
+        isFavorite,
+        getFavoritesByType,
+      }}
     >
       {children}
     </FavoritesContext.Provider>

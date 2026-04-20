@@ -26,7 +26,7 @@ export interface Service {
   id: string;
   name: string;
   type: string;
-  building: string;
+  building?: string;
   openingHours: string;
   coordinates: { lat: number; lng: number };
 }
@@ -1526,6 +1526,10 @@ export function getRoomById(id: string): Room | undefined {
 
 export function getBuildingById(id: string): Building | undefined {
   return buildings.find((building) => building.id === id);
+}
+
+export function getServiceById(id: string): Service | undefined {
+  return services.find((service) => service.id === id);
 }
 
 export function getRoomsByBuilding(buildingId: string): Room[] {
