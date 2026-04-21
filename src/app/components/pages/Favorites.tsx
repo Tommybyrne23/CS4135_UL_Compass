@@ -13,25 +13,30 @@ import {
 import { toast } from "sonner";
 
 export function Favorites() {
-  const { favorites, removeFavorite, getFavoritesByType } = useFavorites();
+  const { favorites, removeFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const favoriteRoomIds = getFavoritesByType("room");
-  const favoriteBuildingIds = getFavoritesByType("building");
-  const favoriteServiceIds = getFavoritesByType("service");
+  console.log("favorites:", favorites);
 
-  const favoriteRooms = favoriteRoomIds
-    .map((fav) => getRoomById(fav.id))
+  const safeFavorites = Array.isArray(favorites) ? favorites : [];
+
+  const favoriteRooms = safeFavorites
+    .map((id: string) => getRoomById(id))
     .filter((room) => room !== undefined);
 
-  const favoriteBuildings = favoriteBuildingIds
-    .map((fav) => getBuildingById(fav.id))
+  const favoriteBuildings = safeFavorites
+    .map((id: string) => getBuildingById(id))
     .filter((building) => building !== undefined);
 
-  const favoriteServices = favoriteServiceIds
-    .map((fav) => getServiceById(fav.id))
+  const favoriteServices = safeFavorites
+    .map((id: string) => getServiceById(id))
     .filter((service) => service !== undefined);
+
+  const totalFavorites =
+    favoriteRooms.length +
+    favoriteBuildings.length +
+    favoriteServices.length;
 
   if (!isAuthenticated) {
     return (
@@ -49,13 +54,8 @@ export function Favorites() {
     );
   }
 
-  const totalFavorites =
-    favoriteRooms.length +
-    favoriteBuildings.length +
-    favoriteServices.length;
-
-  const handleRemove = (id: string, type: "room" | "building" | "service") => {
-    removeFavorite(id, type);
+  const handleRemove = (id: string) => {
+    removeFavorite(id);
     toast.success("Removed from favorites");
   };
 
@@ -74,7 +74,6 @@ export function Favorites() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
       <div className="space-y-4">
         <h1 className="text-4xl font-bold text-[#00843D]">My Favorites</h1>
         <p className="text-slate-600">
@@ -82,7 +81,6 @@ export function Favorites() {
         </p>
       </div>
 
-      {/* Favorites List */}
       {totalFavorites === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -107,7 +105,6 @@ export function Favorites() {
             </h2>
           </div>
 
-          {/* Favorite Rooms Section */}
           {favoriteRooms.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold flex items-center gap-2">
@@ -131,7 +128,7 @@ export function Favorites() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemove(room.id, "room")}
+                          onClick={() => handleRemove(room.id)}
                           className="text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="size-5" />
@@ -191,7 +188,6 @@ export function Favorites() {
             </div>
           )}
 
-          {/* Favorite Buildings Section */}
           {favoriteBuildings.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold flex items-center gap-2">
@@ -215,7 +211,7 @@ export function Favorites() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemove(building.id, "building")}
+                          onClick={() => handleRemove(building.id)}
                           className="text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="size-5" />
@@ -226,9 +222,7 @@ export function Favorites() {
                       <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() =>
-                          handleViewOnMap(building.id, "building")
-                        }
+                        onClick={() => handleViewOnMap(building.id, "building")}
                       >
                         <MapPin className="size-4 mr-2" />
                         Show on Map
@@ -240,7 +234,6 @@ export function Favorites() {
             </div>
           )}
 
-          {/* Favorite Services Section */}
           {favoriteServices.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold flex items-center gap-2">
@@ -261,7 +254,7 @@ export function Favorites() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemove(service.id, "service")}
+                          onClick={() => handleRemove(service.id)}
                           className="text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="size-5" />
@@ -276,9 +269,7 @@ export function Favorites() {
                       <Button
                         variant="outline"
                         className="w-full"
-                        onClick={() =>
-                          handleViewOnMap(service.id, "service")
-                        }
+                        onClick={() => handleViewOnMap(service.id, "service")}
                       >
                         <MapPin className="size-4 mr-2" />
                         Show on Map
@@ -290,7 +281,6 @@ export function Favorites() {
             </div>
           )}
 
-          {/* Tips Card */}
           <Card className="bg-green-50 border-green-200 mt-6">
             <CardHeader>
               <CardTitle>Favorites Tips</CardTitle>

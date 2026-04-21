@@ -13,7 +13,9 @@
       "email": "ddd@dd.com",
       "name": "ddd",
       "passwordHash": "6231ca38d3ebd96cce7c308e4d788caa:b57062061498432b64155c3d2de2caf090e72eb1fcc60f96ef5bc8a719a2b25029b7b51936ced57c1acac095de52b0316439349bd74185919c077dd1a1d5f3b3",
-      "favorites": [],
+      "favorites": [
+        "CS1015"
+      ],
       "createdAt": "2026-04-21T19:35:01.009Z"
     }
   ],
