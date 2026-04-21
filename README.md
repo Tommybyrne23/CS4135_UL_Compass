@@ -1,3 +1,16 @@
+## New steps for setting up the Database
+
+Assuming you guys have ran the others underneath
+
+When you pull this to new folder do:
+
+`npm install express`
+
+then
+`npm install --save-dev concurrently`
+
+And then should run with 
+`npm run dev`
 ## Installation for project
 
 Make sure Visual Studio Code is closed before continuing
