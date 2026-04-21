@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "id": "156ad37ab7ed6ca1",
+      "email": "tom@ul.ie",
+      "name": "tom",
+      "passwordHash": "639d42cf57372bf84a431de8463e400b:9e868a998cbf8be25443d642e7349a2d5ad2467ae17643cc855529e28a452e2c0ed6975a02c66ebe1e742021fc34ab9158746bd017169046c7fe011ca6831791",
+      "favorites": [],
+      "createdAt": "2026-04-21T12:51:54.453Z"
+    }
+  ],
+  "sessions": []
+}
