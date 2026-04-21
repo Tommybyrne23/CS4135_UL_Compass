@@ -1,103 +1,113 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext";
 
-export type FavoriteType = "room" | "building" | "service";
-
-export interface Favorite {
-  id: string;
-  type: FavoriteType;
-}
-
 interface FavoritesContextType {
-  favorites: Favorite[];
-  addFavorite: (id: string, type: FavoriteType) => void;
-  removeFavorite: (id: string, type: FavoriteType) => void;
-  isFavorite: (id: string, type: FavoriteType) => boolean;
-  getFavoritesByType: (type: FavoriteType) => Favorite[];
+  favorites: string[];
+  addFavorite: (roomId: string) => void;
+  removeFavorite: (roomId: string) => void;
+  isFavorite: (roomId: string) => boolean;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(
   undefined
 );
 
+const API_BASE = "/api";
+
+function getToken() {
+  return localStorage.getItem("ul_compass_token");
+}
+
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const { user } = useAuth();
 
+  // Load favorites from API when user changes
   useEffect(() => {
     if (user) {
-      const storedFavorites = localStorage.getItem(
-        `ul_compass_favorites_${user.id}`
-      );
-      if (storedFavorites) {
-        try {
-          const parsed = JSON.parse(storedFavorites);
-          // Handle legacy format (string array) and convert to new format
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            if (typeof parsed[0] === "string") {
-              // Legacy format: convert all strings to room favorites
-              const converted = parsed.map((id: string) => ({
-                id,
-                type: "room" as FavoriteType,
-              }));
-              setFavorites(converted);
-            } else {
-              // New format
-              setFavorites(parsed);
-            }
-          }
-        } catch (e) {
-          console.error("Failed to parse favorites", e);
-        }
+      const token = getToken();
+      if (token) {
+        fetch(`${API_BASE}/favorites`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error("Failed to load favorites");
+            return res.json();
+          })
+          .then((data) => {
+            setFavorites(data.favorites || []);
+          })
+          .catch((err) => {
+            console.error("Error loading favorites:", err);
+            setFavorites([]);
+          });
       }
     } else {
       setFavorites([]);
     }
   }, [user]);
 
-  const addFavorite = (id: string, type: FavoriteType) => {
+  const addFavorite = async (roomId: string) => {
     if (!user) return;
 
-    if (isFavorite(id, type)) return; // Don't add duplicates
+    const token = getToken();
+    if (!token) return;
 
-    const newFavorites = [...favorites, { id, type }];
-    setFavorites(newFavorites);
-    localStorage.setItem(
-      `ul_compass_favorites_${user.id}`,
-      JSON.stringify(newFavorites)
-    );
+    // Optimistic update
+    setFavorites((prev) => [...prev, roomId]);
+
+    try {
+      const res = await fetch(`${API_BASE}/favorites`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ roomId }),
+      });
+
+      if (!res.ok) {
+        // Revert on failure
+        setFavorites((prev) => prev.filter((id) => id !== roomId));
+      }
+    } catch (err) {
+      console.error("Error adding favorite:", err);
+      setFavorites((prev) => prev.filter((id) => id !== roomId));
+    }
   };
 
-  const removeFavorite = (id: string, type: FavoriteType) => {
+  const removeFavorite = async (roomId: string) => {
     if (!user) return;
 
-    const newFavorites = favorites.filter(
-      (fav) => !(fav.id === id && fav.type === type)
-    );
-    setFavorites(newFavorites);
-    localStorage.setItem(
-      `ul_compass_favorites_${user.id}`,
-      JSON.stringify(newFavorites)
-    );
+    const token = getToken();
+    if (!token) return;
+
+    // Optimistic update
+    setFavorites((prev) => prev.filter((id) => id !== roomId));
+
+    try {
+      const res = await fetch(`${API_BASE}/favorites/${roomId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        // Revert on failure
+        setFavorites((prev) => [...prev, roomId]);
+      }
+    } catch (err) {
+      console.error("Error removing favorite:", err);
+      setFavorites((prev) => [...prev, roomId]);
+    }
   };
 
-  const isFavorite = (id: string, type: FavoriteType) => {
-    return favorites.some((fav) => fav.id === id && fav.type === type);
-  };
-
-  const getFavoritesByType = (type: FavoriteType) => {
-    return favorites.filter((fav) => fav.type === type);
+  const isFavorite = (roomId: string) => {
+    return favorites.includes(roomId);
   };
 
   return (
     <FavoritesContext.Provider
-      value={{
-        favorites,
-        addFavorite,
-        removeFavorite,
-        isFavorite,
-        getFavoritesByType,
-      }}
+      value={{ favorites, addFavorite, removeFavorite, isFavorite }}
     >
       {children}
     </FavoritesContext.Provider>
