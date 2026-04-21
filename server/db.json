@@ -7,7 +7,21 @@
       "passwordHash": "639d42cf57372bf84a431de8463e400b:9e868a998cbf8be25443d642e7349a2d5ad2467ae17643cc855529e28a452e2c0ed6975a02c66ebe1e742021fc34ab9158746bd017169046c7fe011ca6831791",
       "favorites": [],
       "createdAt": "2026-04-21T12:51:54.453Z"
+    },
+    {
+      "id": "9f7285a4cc4c86d7",
+      "email": "ddd@dd.com",
+      "name": "ddd",
+      "passwordHash": "6231ca38d3ebd96cce7c308e4d788caa:b57062061498432b64155c3d2de2caf090e72eb1fcc60f96ef5bc8a719a2b25029b7b51936ced57c1acac095de52b0316439349bd74185919c077dd1a1d5f3b3",
+      "favorites": [],
+      "createdAt": "2026-04-21T19:35:01.009Z"
     }
   ],
-  "sessions": []
+  "sessions": [
+    {
+      "token": "2ee8270501c703dd1159be1ea815c517877b1eb248ec550a6d241e582ba38b3c",
+      "userId": "9f7285a4cc4c86d7",
+      "createdAt": "2026-04-21T19:35:01.009Z"
+    }
+  ]
 }
