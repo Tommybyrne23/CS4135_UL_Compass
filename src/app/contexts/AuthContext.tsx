@@ -16,28 +16,52 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const API_BASE = "/api";
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
+  // On mount, check if we have a stored token and validate it
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem("ul_compass_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const token = localStorage.getItem("ul_compass_token");
+    if (token) {
+      fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Invalid session");
+          return res.json();
+        })
+        .then((data) => {
+          setUser(data.user);
+        })
+        .catch(() => {
+          // Token is invalid or expired — clear it
+          localStorage.removeItem("ul_compass_token");
+        });
     }
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication - in production, this would call your backend API
-    const mockUser: User = {
-      id: "1",
-      email,
-      name: email.split("@")[0],
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem("ul_compass_user", JSON.stringify(mockUser));
-    return true;
+    try {
+      const res = await fetch(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        return false;
+      }
+
+      const data = await res.json();
+      localStorage.setItem("ul_compass_token", data.token);
+      setUser(data.user);
+      return true;
+    } catch (err) {
+      console.error("Login error:", err);
+      return false;
+    }
   };
 
   const register = async (
@@ -45,21 +69,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     name: string
   ): Promise<boolean> => {
-    // Mock registration - in production, this would call your backend API
-    const mockUser: User = {
-      id: Date.now().toString(),
-      email,
-      name,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem("ul_compass_user", JSON.stringify(mockUser));
-    return true;
+    try {
+      const res = await fetch(`${API_BASE}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, name }),
+      });
+
+      if (!res.ok) {
+        return false;
+      }
+
+      const data = await res.json();
+      localStorage.setItem("ul_compass_token", data.token);
+      setUser(data.user);
+      return true;
+    } catch (err) {
+      console.error("Registration error:", err);
+      return false;
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const token = localStorage.getItem("ul_compass_token");
+
+    // Fire the logout request (best-effort — clear local state regardless)
+    if (token) {
+      fetch(`${API_BASE}/auth/logout`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+    }
+
+    localStorage.removeItem("ul_compass_token");
     setUser(null);
-    localStorage.removeItem("ul_compass_user");
   };
 
   return (

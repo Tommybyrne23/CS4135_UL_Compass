@@ -12,18 +12,63 @@ import {
   Heart,
   Monitor,
 } from "lucide-react";
-import { getRoomById, calculateRoute } from "../../data/campusData";
+import { fetchRoomById } from "../../data/campusApi";
+import type { Room } from "../../data/campusApi";
 import { useFavorites } from "../../contexts/FavoritesContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+// Simple route calculation (client-side utility — no API needed)
+function calculateRoute(
+  from: { lat: number; lng: number },
+  to: { lat: number; lng: number }
+): { distance: number; duration: number; steps: string[] } {
+  const distance =
+    Math.sqrt(
+      Math.pow(to.lat - from.lat, 2) + Math.pow(to.lng - from.lng, 2)
+    ) * 1000;
+
+  const duration = Math.ceil(distance / 80);
+
+  return {
+    distance: Math.round(distance),
+    duration,
+    steps: [
+      "Start at current location",
+      "Head towards the main pathway",
+      "Continue straight past the Living Bridge",
+      "Turn right at the main courtyard",
+      "Destination will be on your left",
+    ],
+  };
+}
 
 export function RoomDetails() {
   const { roomId } = useParams();
-  const room = roomId ? getRoomById(roomId) : undefined;
+  const [room, setRoom] = useState<Room | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showRoute, setShowRoute] = useState(false);
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
-  const [showRoute, setShowRoute] = useState(false);
+
+  useEffect(() => {
+    if (roomId) {
+      setLoading(true);
+      fetchRoomById(roomId)
+        .then((r) => setRoom(r))
+        .catch(() => setRoom(null))
+        .finally(() => setLoading(false));
+    }
+  }, [roomId]);
+
+  if (loading) {
+    return (
+      <div className="max-w-4xl mx-auto p-8 text-center text-slate-600">
+        Loading room details...
+      </div>
+    );
+  }
 
   if (!room) {
     return (
@@ -49,11 +94,11 @@ export function RoomDetails() {
       return;
     }
 
-    if (isFavorite(room.id, "room")) {
-      removeFavorite(room.id, "room");
+    if (isFavorite(room.id)) {
+      removeFavorite(room.id);
       toast.success("Removed from favorites");
     } else {
-      addFavorite(room.id, "room");
+      addFavorite(room.id);
       toast.success("Added to favorites");
     }
   };
@@ -88,10 +133,10 @@ export function RoomDetails() {
               variant="outline"
               size="lg"
               onClick={handleFavoriteToggle}
-              className={isFavorite(room.id, "room") ? "text-red-500" : ""}
+              className={isFavorite(room.id) ? "text-red-500" : ""}
             >
               <Heart
-                className={`size-5 ${isFavorite(room.id, "room") ? "fill-current" : ""}`}
+                className={`size-5 ${isFavorite(room.id) ? "fill-current" : ""}`}
               />
             </Button>
           </div>

@@ -2,7 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Button } from "../ui/button";
 import { Badge } from "../ui/badge";
-import { buildings, rooms, services, type Building, type Service } from "../../data/campusData";
+import { fetchBuildings, fetchRooms, fetchServices } from "../../data/campusApi";
+import type { Building, Room, Service } from "../../data/campusApi";
 import { MapPin, Info, AlertCircle } from "lucide-react";
 import {
   Select,
@@ -53,11 +54,21 @@ const getServiceMarkerUrl = (serviceType: string) => {
 };
 
 export function Map() {
+  const [buildings, setBuildings] = useState<Building[]>([]);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [selectedMarker, setSelectedMarker] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<string | null>(null);
   const [showRooms, setShowRooms] = useState(false);
   const location = useLocation();
+
+  // Fetch campus data from API on mount
+  useEffect(() => {
+    fetchBuildings().then(setBuildings).catch(console.error);
+    fetchRooms().then(setRooms).catch(console.error);
+    fetchServices().then(setServices).catch(console.error);
+  }, []);
 
   // Handle navigation state when coming from search
   useEffect(() => {
@@ -80,12 +91,12 @@ export function Map() {
 
   const selectedBuildingData = useMemo(
     () => buildings.find((b) => b.id === selectedBuilding),
-    [selectedBuilding]
+    [buildings, selectedBuilding]
   );
 
   const selectedServiceData = useMemo(
     () => services.find((s) => s.id === selectedService),
-    [selectedService]
+    [services, selectedService]
   );
 
   const handleMarkerClick = (buildingId: string) => {
@@ -209,7 +220,7 @@ export function Map() {
                     <ul className="space-y-1">
                       <li>• Click on any marker to view details</li>
                       <li>• Red markers are Academic buildings</li>
-                      <li>• Orange markers are Restaurants</ li>
+                      <li>• Orange markers are Restaurants</li>
                       <li>• Yellow markers are Cafes</li>
                       <li>• Purple markers are Other Services</li>
                       <li>• Green markers are Sports Facilities</li>

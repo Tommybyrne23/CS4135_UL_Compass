@@ -4,8 +4,9 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Search as SearchIcon, MapPin, Building2, Clock, Users, Heart } from "lucide-react";
-import { Link, useNavigate } from "react-router";
-import { searchRooms, searchBuildings, services } from "../../data/campusData";
+import { Link } from "react-router";
+import { fetchSearch } from "../../data/campusApi";
+import type { Room, Building, Service } from "../../data/campusApi";
 import { useFavorites } from "../../contexts/FavoritesContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { toast } from "sonner";
@@ -13,46 +14,48 @@ import { toast } from "sonner";
 export function Search() {
   const [query, setQuery] = useState("");
   const [searchPerformed, setSearchPerformed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [roomResults, setRoomResults] = useState<Room[]>([]);
+  const [buildingResults, setBuildingResults] = useState<Building[]>([]);
+  const [serviceResults, setServiceResults] = useState<Service[]>([]);
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
-  const navigate = useNavigate();
 
-  const roomResults = query ? searchRooms(query) : [];
-  const buildingResults = query ? searchBuildings(query) : [];
-  const serviceResults = query
-    ? services.filter(
-        (s) =>
-          s.name.toLowerCase().includes(query.toLowerCase()) ||
-          s.type.toLowerCase().includes(query.toLowerCase())
-      )
-    : [];
-
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSearchPerformed(true);
+    if (!query.trim()) return;
+
+    setLoading(true);
+    try {
+      const results = await fetchSearch(query);
+      setRoomResults(results.rooms);
+      setBuildingResults(results.buildings);
+      setServiceResults(results.services);
+    } catch (err) {
+      console.error("Search failed:", err);
+      toast.error("Search failed. Please try again.");
+      setRoomResults([]);
+      setBuildingResults([]);
+      setServiceResults([]);
+    } finally {
+      setLoading(false);
+      setSearchPerformed(true);
+    }
   };
 
-  const handleFavoriteToggle = (itemId: string, itemType: "room" | "building" | "service") => {
+  const handleFavoriteToggle = (roomId: string) => {
     if (!isAuthenticated) {
       toast.error("Please login to save favorites");
       return;
     }
 
-    if (isFavorite(itemId, itemType)) {
-      removeFavorite(itemId, itemType);
+    if (isFavorite(roomId)) {
+      removeFavorite(roomId);
       toast.success("Removed from favorites");
     } else {
-      addFavorite(itemId, itemType);
+      addFavorite(roomId);
       toast.success("Added to favorites");
     }
-  };
-
-  const handleViewBuildingOnMap = (buildingId: string) => {
-    navigate("/map", { state: { selectedBuildingId: buildingId } });
-  };
-
-  const handleViewServiceOnMap = (serviceId: string) => {
-    navigate("/map", { state: { selectedServiceId: serviceId } });
   };
 
   const totalResults =
@@ -83,8 +86,8 @@ export function Search() {
             className="pl-10"
           />
         </div>
-        <Button type="submit" className="bg-[#00843D] hover:bg-[#006B2D]">
-          Search
+        <Button type="submit" className="bg-[#00843D] hover:bg-[#006B2D]" disabled={loading}>
+          {loading ? "Searching..." : "Search"}
         </Button>
       </form>
 
@@ -131,14 +134,14 @@ export function Search() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleFavoriteToggle(room.id, "room")}
+                          onClick={() => handleFavoriteToggle(room.id)}
                           className={
-                            isFavorite(room.id, "room") ? "text-red-500" : "text-slate-400"
+                            isFavorite(room.id) ? "text-red-500" : "text-slate-400"
                           }
                         >
                           <Heart
                             className={`size-5 ${
-                              isFavorite(room.id, "room") ? "fill-current" : ""
+                              isFavorite(room.id) ? "fill-current" : ""
                             }`}
                           />
                         </Button>
@@ -198,38 +201,18 @@ export function Search() {
                 {buildingResults.map((building) => (
                   <Card key={building.id} className="hover:shadow-md transition">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <CardTitle>{building.fullName}</CardTitle>
-                            <Badge variant="outline">{building.type}</Badge>
-                          </div>
-                          <p className="text-slate-600">{building.description}</p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleFavoriteToggle(building.id, "building")}
-                          className={
-                            isFavorite(building.id, "building") ? "text-red-500" : "text-slate-400"
-                          }
-                        >
-                          <Heart
-                            className={`size-5 ${
-                              isFavorite(building.id, "building") ? "fill-current" : ""
-                            }`}
-                          />
-                        </Button>
+                      <div className="flex items-center gap-3 mb-2">
+                        <CardTitle>{building.fullName}</CardTitle>
+                        <Badge variant="outline">{building.type}</Badge>
                       </div>
+                      <p className="text-slate-600">{building.description}</p>
                     </CardHeader>
                     <CardContent>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => handleViewBuildingOnMap(building.id)}
-                      >
-                        View on Map
-                      </Button>
+                      <Link to="/map">
+                        <Button variant="outline" className="w-full">
+                          View on Map
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}
@@ -248,27 +231,9 @@ export function Search() {
                 {serviceResults.map((service) => (
                   <Card key={service.id} className="hover:shadow-md transition">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <CardTitle>{service.name}</CardTitle>
-                            <Badge>{service.type}</Badge>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleFavoriteToggle(service.id, "service")}
-                          className={
-                            isFavorite(service.id, "service") ? "text-red-500" : "text-slate-400"
-                          }
-                        >
-                          <Heart
-                            className={`size-5 ${
-                              isFavorite(service.id, "service") ? "fill-current" : ""
-                            }`}
-                          />
-                        </Button>
+                      <div className="flex items-center gap-3 mb-2">
+                        <CardTitle>{service.name}</CardTitle>
+                        <Badge>{service.type}</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -276,13 +241,11 @@ export function Search() {
                         <Clock className="size-4" />
                         {service.openingHours}
                       </div>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => handleViewServiceOnMap(service.id)}
-                      >
-                        View on Map
-                      </Button>
+                      <Link to="/map">
+                        <Button variant="outline" className="w-full">
+                          View on Map
+                        </Button>
+                      </Link>
                     </CardContent>
                   </Card>
                 ))}
@@ -304,7 +267,23 @@ export function Search() {
                   variant="outline"
                   onClick={() => {
                     setQuery(suggestion);
-                    setSearchPerformed(true);
+                    // Trigger search immediately
+                    setLoading(true);
+                    fetchSearch(suggestion)
+                      .then((results) => {
+                        setRoomResults(results.rooms);
+                        setBuildingResults(results.buildings);
+                        setServiceResults(results.services);
+                      })
+                      .catch(() => {
+                        setRoomResults([]);
+                        setBuildingResults([]);
+                        setServiceResults([]);
+                      })
+                      .finally(() => {
+                        setLoading(false);
+                        setSearchPerformed(true);
+                      });
                   }}
                 >
                   {suggestion}
