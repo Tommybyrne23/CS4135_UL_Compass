@@ -70,20 +70,28 @@ export function Map() {
     fetchServices().then(setServices).catch(console.error);
   }, []);
 
-  // Handle navigation state when coming from search
+  // Handle navigation state when coming from search or favorites
   useEffect(() => {
-    const state = location.state as { selectedBuildingId?: string; selectedServiceId?: string } | null;
+    const state = location.state as { selectedBuildingId?: string; selectedServiceId?: string; selectedRoomId?: string } | null;
     if (state?.selectedBuildingId) {
       setSelectedBuilding(state.selectedBuildingId);
       setSelectedMarker(state.selectedBuildingId);
       setShowRooms(true);
     } else if (state?.selectedServiceId) {
       setSelectedService(state.selectedServiceId);
+    } else if (state?.selectedRoomId) {
+      // Find the room and get its building
+      const room = rooms.find((r) => r.id === state.selectedRoomId);
+      if (room) {
+        setSelectedBuilding(room.building);
+        setSelectedMarker(room.building);
+        setShowRooms(true);
+      }
     }
-  }, [location.state]);
+  }, [location.state, rooms]);
 
-  // Replace this with your actual Google Maps API key
-  const GOOGLE_MAPS_API_KEY = "AIzaSyCDlZU__f7fp7vA7skzT01M1_IIV-Wu61A";
+  // Get Google Maps API key from environment variables
+  const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   const filteredRooms = selectedBuilding
     ? rooms.filter((room) => room.building === selectedBuilding)

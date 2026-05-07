@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Search as SearchIcon, MapPin, Building2, Clock, Users, Heart } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { fetchSearch } from "../../data/campusApi";
 import type { Room, Building, Service } from "../../data/campusApi";
 import { useFavorites } from "../../contexts/FavoritesContext";
@@ -20,6 +20,7 @@ export function Search() {
   const [serviceResults, setServiceResults] = useState<Service[]>([]);
   const { addFavorite, removeFavorite, isFavorite } = useFavorites();
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,18 +44,18 @@ export function Search() {
     }
   };
 
-  const handleFavoriteToggle = (roomId: string) => {
+  const handleFavoriteToggle = (itemId: string, type: "room" | "building" | "service") => {
     if (!isAuthenticated) {
       toast.error("Please login to save favorites");
       return;
     }
 
-    if (isFavorite(roomId)) {
-      removeFavorite(roomId);
-      toast.success("Removed from favorites");
+    if (isFavorite(itemId, type)) {
+      removeFavorite(itemId, type);
+      toast.success(`Removed from favorites`);
     } else {
-      addFavorite(roomId);
-      toast.success("Added to favorites");
+      addFavorite(itemId, type);
+      toast.success(`Added to favorites`);
     }
   };
 
@@ -134,14 +135,14 @@ export function Search() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleFavoriteToggle(room.id)}
+                          onClick={() => handleFavoriteToggle(room.id, "room")}
                           className={
-                            isFavorite(room.id) ? "text-red-500" : "text-slate-400"
+                            isFavorite(room.id, "room") ? "text-red-500" : "text-slate-400"
                           }
                         >
                           <Heart
                             className={`size-5 ${
-                              isFavorite(room.id) ? "fill-current" : ""
+                              isFavorite(room.id, "room") ? "fill-current" : ""
                             }`}
                           />
                         </Button>
@@ -178,11 +179,21 @@ export function Search() {
                         </div>
                       )}
 
-                      <Link to={`/room/${room.id}`}>
-                        <Button variant="outline" className="w-full">
-                          View Details
+                      <div className="flex gap-2">
+                        <Link to={`/room/${room.id}`} className="flex-1">
+                          <Button variant="outline" className="w-full">
+                            View Details
+                          </Button>
+                        </Link>
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => navigate("/map", { state: { selectedRoomId: room.id } })}
+                        >
+                          <MapPin className="size-4 mr-2" />
+                          View on Map
                         </Button>
-                      </Link>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -201,14 +212,32 @@ export function Search() {
                 {buildingResults.map((building) => (
                   <Card key={building.id} className="hover:shadow-md transition">
                     <CardHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle>{building.fullName}</CardTitle>
-                        <Badge variant="outline">{building.type}</Badge>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CardTitle>{building.fullName}</CardTitle>
+                            <Badge variant="outline">{building.type}</Badge>
+                          </div>
+                          <p className="text-slate-600">{building.description}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleFavoriteToggle(building.id, "building")}
+                          className={
+                            isFavorite(building.id, "building") ? "text-red-500" : "text-slate-400"
+                          }
+                        >
+                          <Heart
+                            className={`size-5 ${
+                              isFavorite(building.id, "building") ? "fill-current" : ""
+                            }`}
+                          />
+                        </Button>
                       </div>
-                      <p className="text-slate-600">{building.description}</p>
                     </CardHeader>
                     <CardContent>
-                      <Link to="/map">
+                      <Link to="/map" state={{ selectedBuildingId: building.id }}>
                         <Button variant="outline" className="w-full">
                           View on Map
                         </Button>
@@ -231,9 +260,27 @@ export function Search() {
                 {serviceResults.map((service) => (
                   <Card key={service.id} className="hover:shadow-md transition">
                     <CardHeader>
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle>{service.name}</CardTitle>
-                        <Badge>{service.type}</Badge>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CardTitle>{service.name}</CardTitle>
+                            <Badge>{service.type}</Badge>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleFavoriteToggle(service.id, "service")}
+                          className={
+                            isFavorite(service.id, "service") ? "text-red-500" : "text-slate-400"
+                          }
+                        >
+                          <Heart
+                            className={`size-5 ${
+                              isFavorite(service.id, "service") ? "fill-current" : ""
+                            }`}
+                          />
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3">
@@ -241,7 +288,7 @@ export function Search() {
                         <Clock className="size-4" />
                         {service.openingHours}
                       </div>
-                      <Link to="/map">
+                      <Link to="/map" state={{ selectedServiceId: service.id }}>
                         <Button variant="outline" className="w-full">
                           View on Map
                         </Button>

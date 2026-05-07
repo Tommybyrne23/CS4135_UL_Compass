@@ -54,8 +54,8 @@ export function Favorites() {
     );
   }
 
-  const handleRemove = (id: string) => {
-    removeFavorite(id);
+  const handleRemove = (id: string, type: "room" | "building" | "service") => {
+    removeFavorite(id, type);
     toast.success("Removed from favorites");
   };
 
@@ -128,7 +128,7 @@ export function Favorites() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemove(room.id)}
+                          onClick={() => handleRemove(room.id, "room")}
                           className="text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="size-5" />
@@ -211,7 +211,7 @@ export function Favorites() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemove(building.id)}
+                          onClick={() => handleRemove(building.id, "building")}
                           className="text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="size-5" />
@@ -254,7 +254,7 @@ export function Favorites() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleRemove(service.id)}
+                          onClick={() => handleRemove(service.id, "service")}
                           className="text-slate-400 hover:text-red-500"
                         >
                           <Trash2 className="size-5" />

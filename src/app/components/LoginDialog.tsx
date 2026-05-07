@@ -26,8 +26,8 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const loginRecaptchaRef = useRef<ReCAPTCHA>(null);
   const registerRecaptchaRef = useRef<ReCAPTCHA>(null);
 
-  // Google reCAPTCHA site key
-  const RECAPTCHA_SITE_KEY = "6LfaR7ksAAAAABIrzcq7f0YQ7MPLvXdENw_rr_bw";
+  // Get reCAPTCHA site key from environment variables
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

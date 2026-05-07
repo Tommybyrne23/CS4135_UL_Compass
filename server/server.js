@@ -7,14 +7,17 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DB_PATH = join(__dirname, "db.json");
+const DB_SEED_PATH = join(__dirname, "db.seed.json");
 const CAMPUS_DATA_PATH = join(__dirname, "campusData.json");
 
 // ── Database helpers ──────────────────────────────────────────────
 function readDB() {
   if (!existsSync(DB_PATH)) {
-    const empty = { users: [], sessions: [] };
-    writeFileSync(DB_PATH, JSON.stringify(empty, null, 2));
-    return empty;
+    // Initialize from seed file
+    const seed = JSON.parse(readFileSync(DB_SEED_PATH, "utf-8"));
+    writeFileSync(DB_PATH, JSON.stringify(seed, null, 2));
+    console.log("📦 Database initialized from seed");
+    return seed;
   }
   return JSON.parse(readFileSync(DB_PATH, "utf-8"));
 }
@@ -147,28 +150,37 @@ app.get("/api/favorites", authenticate, (req, res) => {
 });
 
 app.post("/api/favorites", authenticate, (req, res) => {
-  const { roomId } = req.body;
-  if (!roomId) return res.status(400).json({ error: "roomId is required" });
+  const { itemId, type } = req.body;
+  if (!itemId || !type) {
+    return res.status(400).json({ error: "itemId and type are required" });
+  }
+  const validTypes = ["room", "building", "service"];
+  if (!validTypes.includes(type)) {
+    return res.status(400).json({ error: "Invalid type. Must be room, building, or service" });
+  }
+  
   const db = readDB();
   const user = db.users.find((u) => u.id === req.user.id);
   if (!user.favorites) user.favorites = [];
-  if (user.favorites.includes(roomId)) {
-    return res.status(409).json({ error: "Room is already in favorites" });
+  
+  const favoriteId = `${type}:${itemId}`;
+  if (user.favorites.includes(favoriteId)) {
+    return res.status(409).json({ error: `${type} is already in favorites` });
   }
-  user.favorites.push(roomId);
+  user.favorites.push(favoriteId);
   writeDB(db);
-  console.log(`[FAVORITES] ${user.email} added ${roomId}`);
+  console.log(`[FAVORITES] ${user.email} added ${type} ${itemId}`);
   res.status(201).json({ favorites: user.favorites });
 });
 
-app.delete("/api/favorites/:roomId", authenticate, (req, res) => {
-  const { roomId } = req.params;
+app.delete("/api/favorites/:favoriteId", authenticate, (req, res) => {
+  const { favoriteId } = req.params;
   const db = readDB();
   const user = db.users.find((u) => u.id === req.user.id);
   if (!user.favorites) user.favorites = [];
-  user.favorites = user.favorites.filter((id) => id !== roomId);
+  user.favorites = user.favorites.filter((id) => id !== favoriteId);
   writeDB(db);
-  console.log(`[FAVORITES] ${user.email} removed ${roomId}`);
+  console.log(`[FAVORITES] ${user.email} removed ${favoriteId}`);
   res.json({ favorites: user.favorites });
 });
 

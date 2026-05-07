@@ -3,9 +3,9 @@ import { useAuth } from "./AuthContext";
 
 interface FavoritesContextType {
   favorites: string[];
-  addFavorite: (roomId: string) => void;
-  removeFavorite: (roomId: string) => void;
-  isFavorite: (roomId: string) => boolean;
+  addFavorite: (itemId: string, type: "room" | "building" | "service") => void;
+  removeFavorite: (itemId: string, type: "room" | "building" | "service") => void;
+  isFavorite: (itemId: string, type: "room" | "building" | "service") => boolean;
 }
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(
@@ -47,14 +47,15 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user]);
 
-  const addFavorite = async (roomId: string) => {
+  const addFavorite = async (itemId: string, type: "room" | "building" | "service") => {
     if (!user) return;
 
     const token = getToken();
     if (!token) return;
 
+    const favoriteId = `${type}:${itemId}`;
     // Optimistic update
-    setFavorites((prev) => [...prev, roomId]);
+    setFavorites((prev) => [...prev, favoriteId]);
 
     try {
       const res = await fetch(`${API_BASE}/favorites`, {
@@ -63,46 +64,48 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ roomId }),
+        body: JSON.stringify({ itemId, type }),
       });
 
       if (!res.ok) {
         // Revert on failure
-        setFavorites((prev) => prev.filter((id) => id !== roomId));
+        setFavorites((prev) => prev.filter((id) => id !== favoriteId));
       }
     } catch (err) {
       console.error("Error adding favorite:", err);
-      setFavorites((prev) => prev.filter((id) => id !== roomId));
+      setFavorites((prev) => prev.filter((id) => id !== favoriteId));
     }
   };
 
-  const removeFavorite = async (roomId: string) => {
+  const removeFavorite = async (itemId: string, type: "room" | "building" | "service") => {
     if (!user) return;
 
     const token = getToken();
     if (!token) return;
 
+    const favoriteId = `${type}:${itemId}`;
     // Optimistic update
-    setFavorites((prev) => prev.filter((id) => id !== roomId));
+    setFavorites((prev) => prev.filter((id) => id !== favoriteId));
 
     try {
-      const res = await fetch(`${API_BASE}/favorites/${roomId}`, {
+      const res = await fetch(`${API_BASE}/favorites/${favoriteId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
         // Revert on failure
-        setFavorites((prev) => [...prev, roomId]);
+        setFavorites((prev) => [...prev, favoriteId]);
       }
     } catch (err) {
       console.error("Error removing favorite:", err);
-      setFavorites((prev) => [...prev, roomId]);
+      setFavorites((prev) => [...prev, favoriteId]);
     }
   };
 
-  const isFavorite = (roomId: string) => {
-    return favorites.includes(roomId);
+  const isFavorite = (itemId: string, type: "room" | "building" | "service") => {
+    const favoriteId = `${type}:${itemId}`;
+    return favorites.includes(favoriteId);
   };
 
   return (
