@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 const DB_PATH = join(__dirname, "db.json");
 const DB_SEED_PATH = join(__dirname, "db.seed.json");
 const CAMPUS_DATA_PATH = join(__dirname, "campusData.json");
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
 
 // ── Database helpers ──────────────────────────────────────────────
 function readDB() {
@@ -24,6 +25,28 @@ function readDB() {
 
 function writeDB(data) {
   writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
+}
+
+async function verifyCaptcha(captchaToken) {
+  if (!captchaToken) return false;
+  if (!RECAPTCHA_SECRET_KEY) {
+    console.error("RECAPTCHA_SECRET_KEY is not set");
+    return false;
+  }
+
+  const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      secret: RECAPTCHA_SECRET_KEY,
+      response: captchaToken,
+    }),
+  });
+
+  const data = await response.json();
+  return data.success === true;
 }
 
 // ── Campus data (loaded once at startup) ──────────────────────────
@@ -87,15 +110,25 @@ function authenticate(req, res, next) {
 // AUTH ROUTES
 // ══════════════════════════════════════════════════════════════════
 
-app.post("/api/auth/register", (req, res) => {
-  const { email, password, name } = req.body;
-  if (!email || !password || !name) {
-    return res.status(400).json({ error: "Email, password, and name are required" });
+app.post("/api/auth/register", async (req, res) => {
+  const { email, password, name, captchaToken } = req.body;
+
+  if (!email || !password || !name || !captchaToken) {
+    return res.status(400).json({
+      error: "Email, password, name, and captchaToken are required",
+    });
   }
+
+  const captchaValid = await verifyCaptcha(captchaToken);
+  if (!captchaValid) {
+    return res.status(400).json({ error: "CAPTCHA verification failed" });
+  }
+
   const db = readDB();
   if (db.users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
     return res.status(409).json({ error: "An account with this email already exists" });
   }
+
   const user = {
     id: randomBytes(8).toString("hex"),
     email: email.toLowerCase(),
@@ -104,41 +137,43 @@ app.post("/api/auth/register", (req, res) => {
     favorites: [],
     createdAt: new Date().toISOString(),
   };
+
   const token = generateToken();
   db.users.push(user);
   db.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
   writeDB(db);
-  console.log(`[AUTH] User registered: ${user.email}`);
+
+  console.log(`[AUTH] User registered with verified CAPTCHA: ${user.email}`);
   res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name } });
 });
 
-app.post("/api/auth/login", (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: "Email and password are required" });
+app.post("/api/auth/login", async (req, res) => {
+  const { email, password, captchaToken } = req.body;
+
+  if (!email || !password || !captchaToken) {
+    return res.status(400).json({
+      error: "Email, password, and captchaToken are required",
+    });
   }
+
+  const captchaValid = await verifyCaptcha(captchaToken);
+  if (!captchaValid) {
+    return res.status(400).json({ error: "CAPTCHA verification failed" });
+  }
+
   const db = readDB();
   const user = db.users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+
   if (!user || !verifyPassword(password, user.passwordHash)) {
     return res.status(401).json({ error: "Invalid email or password" });
   }
+
   const token = generateToken();
   db.sessions.push({ token, userId: user.id, createdAt: new Date().toISOString() });
   writeDB(db);
-  console.log(`[AUTH] User logged in: ${user.email}`);
+
+  console.log(`[AUTH] User logged in with verified CAPTCHA: ${user.email}`);
   res.json({ token, user: { id: user.id, email: user.email, name: user.name } });
-});
-
-app.post("/api/auth/logout", authenticate, (req, res) => {
-  const db = readDB();
-  db.sessions = db.sessions.filter((s) => s.token !== req.token);
-  writeDB(db);
-  console.log(`[AUTH] User logged out: ${req.user.email}`);
-  res.json({ message: "Logged out successfully" });
-});
-
-app.get("/api/auth/me", authenticate, (req, res) => {
-  res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.name } });
 });
 
 // ══════════════════════════════════════════════════════════════════

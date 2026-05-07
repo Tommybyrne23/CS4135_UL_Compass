@@ -8,8 +8,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (email: string, password: string, name: string) => Promise<boolean>;
+  login: (email: string, password: string, captchaToken: string) => Promise<boolean>;
+  register: (email: string, password: string, name: string, captchaToken: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -42,53 +42,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  const login = async (
+  email: string,
+  password: string,
+  captchaToken: string
+): Promise<boolean> => {
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, captchaToken }),
+    });
 
-      if (!res.ok) {
-        return false;
-      }
+    if (!res.ok) return false;
 
-      const data = await res.json();
-      localStorage.setItem("ul_compass_token", data.token);
-      setUser(data.user);
-      return true;
-    } catch (err) {
-      console.error("Login error:", err);
-      return false;
-    }
-  };
+    const data = await res.json();
+    localStorage.setItem("ul_compass_token", data.token);
+    setUser(data.user);
+    return true;
+  } catch (err) {
+    console.error("Login error:", err);
+    return false;
+  }
+};
 
   const register = async (
-    email: string,
-    password: string,
-    name: string
-  ): Promise<boolean> => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
-      });
+  email: string,
+  password: string,
+  name: string,
+  captchaToken: string
+): Promise<boolean> => {
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name, captchaToken }),
+    });
 
-      if (!res.ok) {
-        return false;
-      }
+    if (!res.ok) return false;
 
-      const data = await res.json();
-      localStorage.setItem("ul_compass_token", data.token);
-      setUser(data.user);
-      return true;
-    } catch (err) {
-      console.error("Registration error:", err);
-      return false;
-    }
-  };
+    const data = await res.json();
+    localStorage.setItem("ul_compass_token", data.token);
+    setUser(data.user);
+    return true;
+  } catch (err) {
+    console.error("Registration error:", err);
+    return false;
+  }
+};
 
   const logout = async () => {
     const token = localStorage.getItem("ul_compass_token");
