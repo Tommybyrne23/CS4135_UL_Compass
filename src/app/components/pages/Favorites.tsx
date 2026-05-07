@@ -21,17 +21,27 @@ export function Favorites() {
 
   const safeFavorites = Array.isArray(favorites) ? favorites : [];
 
-  const favoriteRooms = safeFavorites
-    .map((id: string) => getRoomById(id))
-    .filter((room) => room !== undefined);
+const parsedFavorites = safeFavorites
+  .map((favoriteId: string) => {
+    const [type, ...rest] = favoriteId.split(":");
+    return { type, itemId: rest.join(":") };
+  })
+  .filter((item) => item.type && item.itemId);
 
-  const favoriteBuildings = safeFavorites
-    .map((id: string) => getBuildingById(id))
-    .filter((building) => building !== undefined);
+const favoriteRooms = parsedFavorites
+  .filter((item) => item.type === "room")
+  .map((item) => getRoomById(item.itemId))
+  .filter((room) => room !== undefined);
 
-  const favoriteServices = safeFavorites
-    .map((id: string) => getServiceById(id))
-    .filter((service) => service !== undefined);
+const favoriteBuildings = parsedFavorites
+  .filter((item) => item.type === "building")
+  .map((item) => getBuildingById(item.itemId))
+  .filter((building) => building !== undefined);
+
+const favoriteServices = parsedFavorites
+  .filter((item) => item.type === "service")
+  .map((item) => getServiceById(item.itemId))
+  .filter((service) => service !== undefined);
 
   const totalFavorites =
     favoriteRooms.length +

@@ -1,4 +1,23 @@
 {
-  "users": [],
-  "sessions": []
+  "users": [
+    {
+      "id": "349cb21b57d8b614",
+      "email": "ddd@dd.com",
+      "name": "ddd",
+      "passwordHash": "0c007c4bcee17ac845e5d9d7d4e7223d:4ca1aa9e0b3c29165e373d9332171ab3888047fdff4d08b58dfc61c53bed3798d0b789aaf5a8d16d00069572069f3d44ad4447f649e870258cfe46f789da5d2a",
+      "favorites": [
+        "room:CS3004-a",
+        "service:cube-cafe",
+        "building:SL"
+      ],
+      "createdAt": "2026-05-07T14:00:13.131Z"
+    }
+  ],
+  "sessions": [
+    {
+      "token": "4e91bbe5a61ec279121809ff7c86bc88d1259ee7cc8aa6d1cc260ca75757b74b",
+      "userId": "349cb21b57d8b614",
+      "createdAt": "2026-05-07T14:00:13.131Z"
+    }
+  ]
 }
