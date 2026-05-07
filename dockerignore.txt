@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.gitignore
+.env
+.env.*
+*.md
+CS4135_UL_Compass
+guidelines
