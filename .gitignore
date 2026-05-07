@@ -1,23 +1,22 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
-package-lock.json
 
-# Distribution
+# Build output
 dist/
 
-# Environment variables
+# Environment files (contain secrets)
 .env
 .env.local
-.env.*.local
+.env.production
 
-# Database (runtime user/session data)
+# Database files (runtime data, not source)
 server/db.json
 
-# Logs
-*.log
-npm-debug.log*
-
-# OS
+# IDE / OS
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+
+# Docker
+*.log
