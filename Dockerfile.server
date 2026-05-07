@@ -1,0 +1,21 @@
+# ============================================
+# UL Compass — Backend (Express.js API)
+# ============================================
+
+FROM node:20-alpine
+WORKDIR /app
+
+# Copy package files from root (Express is a dependency in root package.json)
+COPY package.json package-lock.json ./
+
+# Install production dependencies only
+RUN npm ci --omit=dev
+
+# Copy the server directory
+COPY server/ server/
+
+# Expose the API port
+EXPOSE 3001
+
+# Start the Express server
+CMD ["node", "server/server.js"]
