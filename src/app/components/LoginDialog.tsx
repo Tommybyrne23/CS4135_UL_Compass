@@ -1,5 +1,4 @@
-import { useState, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -22,45 +21,58 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
   const [registerName, setRegisterName] = useState("");
   const [loginCaptchaToken, setLoginCaptchaToken] = useState<string | null>(null);
   const [registerCaptchaToken, setRegisterCaptchaToken] = useState<string | null>(null);
-  
-  const loginRecaptchaRef = useRef<ReCAPTCHA>(null);
-  const registerRecaptchaRef = useRef<ReCAPTCHA>(null);
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const [captchaKey, setCaptchaKey] = useState(0);
 
-  // Get reCAPTCHA site key from environment variables
-  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+  const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY ?? "";
+
+  useEffect(() => {
+    if (!open) {
+      setLoginCaptchaToken(null);
+      setRegisterCaptchaToken(null);
+      setCaptchaKey(k => k + 1);
+    }
+  }, [open]);
+
+  const handleTabChange = (value: "login" | "register") => {
+    setActiveTab(value);
+    setLoginCaptchaToken(null);
+    setRegisterCaptchaToken(null);
+    setCaptchaKey(k => k + 1);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!loginCaptchaToken) {
       toast.error("Please complete the security check");
       return;
     }
-    
-    const success = await login(loginEmail, loginPassword);
+
+    const success = await login(loginEmail, loginPassword, loginCaptchaToken);
     if (success) {
       toast.success("Successfully logged in!");
       onOpenChange(false);
       setLoginEmail("");
       setLoginPassword("");
       setLoginCaptchaToken(null);
-      loginRecaptchaRef.current?.reset();
+      setCaptchaKey(k => k + 1);
     } else {
       toast.error("Login failed. Please try again.");
       setLoginCaptchaToken(null);
-      loginRecaptchaRef.current?.reset();
+      setCaptchaKey(k => k + 1);
     }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!registerCaptchaToken) {
       toast.error("Please complete the security check");
       return;
     }
-    
-    const success = await register(registerEmail, registerPassword, registerName);
+
+    const success = await register(registerEmail, registerPassword, registerName, registerCaptchaToken);
     if (success) {
       toast.success("Account created successfully!");
       onOpenChange(false);
@@ -68,22 +80,37 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
       setRegisterPassword("");
       setRegisterName("");
       setRegisterCaptchaToken(null);
-      registerRecaptchaRef.current?.reset();
+      setCaptchaKey(k => k + 1);
     } else {
       toast.error("Registration failed. Please try again.");
       setRegisterCaptchaToken(null);
-      registerRecaptchaRef.current?.reset();
+      setCaptchaKey(k => k + 1);
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Welcome to UL Compass</DialogTitle>
-        </DialogHeader>
+  if (!open) return null;
 
-        <Tabs defaultValue="login" className="w-full">
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40"
+        onClick={() => onOpenChange(false)}
+      />
+
+      {/* Modal */}
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+        {/* Close button */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
+
+        <h2 className="text-lg font-semibold mb-4">Welcome to UL Compass</h2>
+
+        <Tabs value={activeTab} onValueChange={(value) => handleTabChange(value as "login" | "register")} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
@@ -112,16 +139,14 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                   required
                 />
               </div>
-              
               <div className="flex justify-center">
                 <ReCAPTCHA
-                  ref={loginRecaptchaRef}
+                  key={`login-${captchaKey}`}
                   sitekey={RECAPTCHA_SITE_KEY}
                   onChange={(token) => setLoginCaptchaToken(token)}
                   onExpired={() => setLoginCaptchaToken(null)}
                 />
               </div>
-              
               <Button type="submit" className="w-full bg-[#00843D] hover:bg-[#006B2D]">
                 Login
               </Button>
@@ -165,16 +190,14 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                   required
                 />
               </div>
-              
               <div className="flex justify-center">
                 <ReCAPTCHA
-                  ref={registerRecaptchaRef}
+                  key={`register-${captchaKey}`}
                   sitekey={RECAPTCHA_SITE_KEY}
                   onChange={(token) => setRegisterCaptchaToken(token)}
                   onExpired={() => setRegisterCaptchaToken(null)}
                 />
               </div>
-              
               <Button type="submit" className="w-full bg-[#00843D] hover:bg-[#006B2D]">
                 Create Account
               </Button>
@@ -184,7 +207,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             </form>
           </TabsContent>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </>
   );
 }

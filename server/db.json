@@ -11,6 +11,14 @@
         "building:SL"
       ],
       "createdAt": "2026-05-07T14:00:13.131Z"
+    },
+    {
+      "id": "e1cac1f07bd5d2ef",
+      "email": "kylemullanendu@gmail.com",
+      "name": "ddd",
+      "passwordHash": "0f2b0af75557a073439befa34180ce57:f0f2f3f19f502e3b14d14050624b1f826cfa5c8caabf9fa4e657e61964ef654eee0f41c7f870718e027e96c7442a5a1c9053dff9d7dfbf89c9c2ab707dbfa3ac",
+      "favorites": [],
+      "createdAt": "2026-05-08T22:51:59.312Z"
     }
   ],
   "sessions": [
@@ -18,6 +26,11 @@
       "token": "4e91bbe5a61ec279121809ff7c86bc88d1259ee7cc8aa6d1cc260ca75757b74b",
       "userId": "349cb21b57d8b614",
       "createdAt": "2026-05-07T14:00:13.131Z"
+    },
+    {
+      "token": "796cee14c93e1bdae558f4d7a61e6e45d77fc2c47937a2f07e758a331e291acf",
+      "userId": "e1cac1f07bd5d2ef",
+      "createdAt": "2026-05-08T22:51:59.312Z"
     }
   ]
 }

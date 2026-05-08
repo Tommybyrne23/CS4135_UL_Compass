@@ -1,3 +1,13 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* reCAPTCHA z-index fix for modal dialogs */
+.grecaptcha-badge,
+iframe[src*="recaptcha"] {
+  z-index: 9999 !important;
+}
+
+body > div[style*="z-index"] {
+  z-index: 9999 !important;
+}

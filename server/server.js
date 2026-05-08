@@ -6,6 +6,36 @@ import { dirname, join } from "path";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+function loadDotEnv() {
+  const envPath = join(__dirname, "..", ".env");
+  if (!existsSync(envPath)) return;
+
+  const contents = readFileSync(envPath, "utf-8");
+  contents.split(/\r?\n/).forEach((line) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) return;
+
+    const idx = trimmed.indexOf("=");
+    if (idx === -1) return;
+
+    const key = trimmed.slice(0, idx).trim();
+    let value = trimmed.slice(idx + 1).trim();
+    if (
+      (value.startsWith("\"") && value.endsWith("\"")) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+
+    if (process.env[key] === undefined) {
+      process.env[key] = value;
+    }
+  });
+}
+
+loadDotEnv();
+
 const DB_PATH = join(__dirname, "db.json");
 const DB_SEED_PATH = join(__dirname, "db.seed.json");
 const CAMPUS_DATA_PATH = join(__dirname, "campusData.json");
@@ -30,8 +60,10 @@ function writeDB(data) {
 async function verifyCaptcha(captchaToken) {
   if (!captchaToken) return false;
   if (!RECAPTCHA_SECRET_KEY) {
-    console.error("RECAPTCHA_SECRET_KEY is not set");
-    return false;
+    console.warn(
+      "RECAPTCHA_SECRET_KEY is not set. Skipping CAPTCHA verification in development."
+    );
+    return process.env.NODE_ENV !== "production";
   }
 
   const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
@@ -109,6 +141,10 @@ function authenticate(req, res, next) {
 // ══════════════════════════════════════════════════════════════════
 // AUTH ROUTES
 // ══════════════════════════════════════════════════════════════════
+
+app.get("/api/auth/me", authenticate, (req, res) => {
+  res.json({ user: { id: req.user.id, email: req.user.email, name: req.user.name } });
+});
 
 app.post("/api/auth/register", async (req, res) => {
   const { email, password, name, captchaToken } = req.body;

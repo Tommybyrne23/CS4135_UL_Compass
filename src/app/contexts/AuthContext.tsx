@@ -54,7 +54,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, password, captchaToken }),
     });
 
-    if (!res.ok) return false;
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      console.error("Login failed:", res.status, errorData);
+      return false;
+    }
 
     const data = await res.json();
     localStorage.setItem("ul_compass_token", data.token);
@@ -79,7 +83,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       body: JSON.stringify({ email, password, name, captchaToken }),
     });
 
-    if (!res.ok) return false;
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      console.error("Registration failed:", res.status, errorData);
+      return false;
+    }
 
     const data = await res.json();
     localStorage.setItem("ul_compass_token", data.token);
