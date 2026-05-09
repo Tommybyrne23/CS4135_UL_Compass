@@ -1,4 +1,17 @@
-## New steps for setting up the Database
+# UL Compass
+
+A campus navigation and discovery web application for the University of Limerick. Search buildings, rooms, and services, view them on an interactive map, and save favourites.
+
+
+## Quick Start (Docker)
+
+1. Clone the repository
+2. Copy `.env.example` to `.env` and add your API keys
+3. Run `docker-compose up --build -d`
+4. Open `http://localhost` in your browser
+
+
+## Local steps for setting up UL Compass
 
 Assuming you guys have ran the others underneath
 
@@ -11,6 +24,8 @@ then
 
 And then should run with 
 `npm run dev`
+
+
 ## Installation for project
 
 Make sure Visual Studio Code is closed before continuing
@@ -42,6 +57,7 @@ Type in the following code: **Set-ExecutionPolicy RemoteSigned -Scope CurrentUse
 Close VS Code and Open it again.
 Run the code again and it should work.
 
+
 ## SPECIFICATION REQUIREMENTS:
 **Functional Requirements:**
 
@@ -63,4 +79,30 @@ Run the code again and it should work.
 
 **NFR-03 (UI/UX):** The website must be fully responsive and easy to understand.
 
-( We had a teammate who is not participating so we are short on more requirements. such as route generation to guide the user to a room/building/service. And also the deployment hence why you have to do all of this, sorry D:)
+
+## Feedback Incorporated
+
+| Priority | Area | Feedback / Issue | Change Made | Status |
+|----------|------|-----------------|-------------|--------|
+
+| High | Map | "View on Map" should highlight the selected building | Map.tsx reads location.state on mount and highlights the building/service/room's parent building | Completed |
+
+| High | Map | Rooms need "Show on Map" support | Map.tsx extended to handle selectedRoomId by looking up the parent building | Completed |
+
+| High | API | CAPTCHA token must be verified on the backend | Backend now verifies reCAPTCHA token before completing login/registration | Completed |
+
+| High | API | API keys should not be hardcoded | Keys moved to environment variables (.env)excluded from version control | Completed |
+
+| Medium | Documentation | Add a "Feedback Incorporated" table to README/Wiki | This table added; .gitignore improved to exclude node_modules, dist, .env, db.json | Completed |
+
+| Medium | Favourites | Clarify whether favourites support rooms only or all types | Backend rewritten to accept compound type:id identifiers for rooms, buildings, and services | Completed |
+
+| Medium | Favourites | Stop committing runtime user data | Seed/runtime split: db.seed.json committed, db.json generated at runtime and gitignored | Completed |
+
+
+## Team
+
+- Kyle Mullane-Ndu
+- Thomas Byrne
+- Evan Ryan 
+- Oisín Allen 
