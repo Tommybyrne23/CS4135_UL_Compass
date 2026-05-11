@@ -80,7 +80,7 @@ Run the code again and it should work.
 **NFR-03 (UI/UX):** The website must be fully responsive and easy to understand.
 
 
-## Feedback Incorporated
+## Feedback Incorporated ( Go to WiKi for more Details here )
 
 | Priority | Area | Feedback / Issue | Change Made | Status |
 |----------|------|-----------------|-------------|--------|
